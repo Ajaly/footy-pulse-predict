@@ -17,7 +17,7 @@ const Hero = () => {
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-5xl md:text-7xl font-black mb-4 bg-gradient-primary bg-clip-text text-transparent">
-            FootyPulse
+            YobraPulse
           </h1>
           <div className="text-xl md:text-2xl text-muted-foreground font-medium">
             Live Scores • Predictions • Stats
