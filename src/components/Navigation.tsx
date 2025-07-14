@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Home, BarChart3, Calendar, Trophy, Bell } from "lucide-react";
+import { Menu, Home, BarChart3, Calendar, Trophy, Bell, Users, TrendingUp, Target, Globe, Settings } from "lucide-react";
 import { useState } from "react";
 
 const Navigation = () => {
@@ -10,7 +10,12 @@ const Navigation = () => {
     { icon: BarChart3, label: "Live Scores", href: "#scores" },
     { icon: Calendar, label: "Fixtures", href: "#fixtures" },
     { icon: Trophy, label: "Leagues", href: "#leagues" },
-    { icon: Bell, label: "Notifications", href: "#notifications" }
+    { icon: Users, label: "Teams & Players", href: "#teams" },
+    { icon: TrendingUp, label: "Transfers", href: "#transfers" },
+    { icon: Target, label: "Predictions", href: "#predictions" },
+    { icon: Globe, label: "News", href: "#news" },
+    { icon: Bell, label: "Notifications", href: "#notifications" },
+    { icon: Settings, label: "Settings", href: "#settings" }
   ];
 
   return (
