@@ -6,16 +6,16 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { icon: Home, label: "Home", href: "#home" },
-    { icon: BarChart3, label: "Live Scores", href: "#scores" },
-    { icon: Calendar, label: "Fixtures", href: "#fixtures" },
-    { icon: Trophy, label: "Leagues", href: "#leagues" },
-    { icon: Users, label: "Teams & Players", href: "#teams" },
-    { icon: TrendingUp, label: "Transfers", href: "#transfers" },
-    { icon: Target, label: "Predictions", href: "#predictions" },
-    { icon: Globe, label: "News", href: "#news" },
-    { icon: Bell, label: "Notifications", href: "#notifications" },
-    { icon: Settings, label: "Settings", href: "#settings" }
+    { icon: Home, label: "Home", href: "/" },
+    { icon: BarChart3, label: "Live Scores", href: "/scores" },
+    { icon: Calendar, label: "Fixtures", href: "/fixtures" },
+    { icon: Trophy, label: "Leagues", href: "/leagues" },
+    { icon: Users, label: "Teams & Players", href: "/teams" },
+    { icon: TrendingUp, label: "Transfers", href: "/transfers" },
+    { icon: Target, label: "Predictions", href: "/predictions" },
+    { icon: Globe, label: "News", href: "/news" },
+    { icon: Bell, label: "Notifications", href: "/notifications" },
+    { icon: Settings, label: "Settings", href: "/settings" }
   ];
 
   return (
