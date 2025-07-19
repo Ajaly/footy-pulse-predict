@@ -18,7 +18,7 @@ serve(async (req) => {
 
     const url = new URL(req.url)
     const league = url.searchParams.get('league') || '39' // Default to Premier League
-    const season = url.searchParams.get('season') || '2024'
+    const season = url.searchParams.get('season') || '2023'
 
     const response = await fetch(
       `https://v3.football.api-sports.io/standings?league=${league}&season=${season}`,
@@ -45,8 +45,9 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    const errorMessage = (error instanceof Error) ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

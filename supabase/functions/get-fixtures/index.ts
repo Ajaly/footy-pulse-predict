@@ -12,6 +12,8 @@ serve(async (req) => {
 
   try {
     const API_KEY = Deno.env.get('FOOTBALL_API_KEY')
+
+    console.log('API_KEY:', API_KEY)
     if (!API_KEY) {
       throw new Error('FOOTBALL_API_KEY not found in secrets')
     }
@@ -19,10 +21,13 @@ serve(async (req) => {
     const url = new URL(req.url)
     const league = url.searchParams.get('league') || '39' // Default to Premier League
     const next = url.searchParams.get('next') || '10' // Next 10 fixtures
-    const season = url.searchParams.get('season') || '2024'
+    const season = url.searchParams.get('season') || '2023'
 
     const response = await fetch(
-      `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}&next=${next}`,
+      // `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}&next=${next}`,
+
+      //Free versions do not have access to the ne
+      `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}`,
       {
         method: 'GET',
         headers: {
@@ -47,7 +52,7 @@ serve(async (req) => {
     )
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

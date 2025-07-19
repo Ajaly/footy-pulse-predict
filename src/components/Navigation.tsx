@@ -1,9 +1,12 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "./ui/button.tsx";
 import { Menu, Home, BarChart3, Calendar, Trophy, Bell, Users, TrendingUp, Target, Globe, Settings } from "lucide-react";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -39,7 +42,10 @@ const Navigation = () => {
                 key={item.label}
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary"
+                className={`flex items-center gap-2 hover:bg-primary/10 hover:text-primary ${
+                  location.pathname === item.href ? "bg-primary/10 text-primary font-semibold" : ""
+                }`}
+                onClick={() => navigate(item.href)}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -66,8 +72,13 @@ const Navigation = () => {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className="justify-start gap-2 hover:bg-primary/10 hover:text-primary"
-                  onClick={() => setIsMenuOpen(false)}
+                  className={`justify-start gap-2 hover:bg-primary/10 hover:text-primary ${
+                    location.pathname === item.href ? "bg-primary/10 text-primary font-semibold" : ""
+                  }`}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate(item.href);
+                  }}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
