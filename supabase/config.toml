@@ -1,1 +1,13 @@
 project_id = "pnvnzjwcbnkiukumrdbj"
+
+[functions.get-fixtures]
+verify_jwt = false
+
+[functions.get-leagues]
+verify_jwt = false
+
+[functions.get-standings]
+verify_jwt = false
+
+[functions.get-live-scores]
+verify_jwt = false
