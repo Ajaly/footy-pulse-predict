@@ -124,7 +124,7 @@ interface FixturesTimelineProps {
 }
 
 const FixturesTimeline: React.FC<FixturesTimelineProps> = ({
-  edgeFunctionName = 'football-fixtures',
+  edgeFunctionName = 'get-fixtures',
   defaultLeague = '39',
   defaultSeason = '2023',
   pageSize = 50,
