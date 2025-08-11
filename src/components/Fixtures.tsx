@@ -1,42 +1,98 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, TrendingUp, Target } from "lucide-react";
+import { CalendarDays, TrendingUp, Target, Loader2 } from "lucide-react";
+import supabase from "@/integrations/utils/supabase";
+import { useState, useEffect } from "react";
 
-const upcomingMatches = [
-  {
-    id: 1,
-    homeTeam: "Liverpool",
-    awayTeam: "Chelsea",
-    date: "2024-01-15",
-    time: "16:30",
-    league: "Premier League",
-    prediction: "Liverpool Win",
-    confidence: 72
-  },
-  {
-    id: 2,
-    homeTeam: "Juventus",
-    awayTeam: "AC Milan",
-    date: "2024-01-16",
-    time: "20:45",
-    league: "Serie A",
-    prediction: "Draw",
-    confidence: 45
-  },
-  {
-    id: 3,
-    homeTeam: "PSG",
-    awayTeam: "Marseille",
-    date: "2024-01-17",
-    time: "21:00",
-    league: "Ligue 1",
-    prediction: "PSG Win",
-    confidence: 68
-  }
-];
+interface Fixture {
+  fixture: {
+    id: number;
+    date: string;
+    status: {
+      short: string;
+    };
+  };
+  teams: {
+    home: {
+      id: number;
+      name: string;
+      logo: string;
+    };
+    away: {
+      id: number;
+      name: string;
+      logo: string;
+    };
+  };
+  league: {
+    id: number;
+    name: string;
+    country: string;
+    logo: string;
+  };
+}
 
 const Fixtures = () => {
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFixtures = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.functions.invoke('get-fixtures', {
+          body: { 
+            league: '39', // Premier League
+            season: '2024'
+          }
+        });
+
+        if (error) throw error;
+        
+        if (data?.response) {
+          // Filter upcoming fixtures only
+          const upcomingFixtures = data.response.filter((fixture: Fixture) => 
+            fixture.fixture.status.short === 'NS' // Not Started
+          ).slice(0, 10); // Get next 10 fixtures
+          
+          setFixtures(upcomingFixtures);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch fixtures');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFixtures();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 px-4 bg-secondary/20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading fixtures...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 px-4 bg-secondary/20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <p className="text-destructive">Error: {error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="py-16 px-4 bg-secondary/20">
       <div className="max-w-6xl mx-auto">
@@ -46,40 +102,57 @@ const Fixtures = () => {
         </div>
 
         <div className="grid gap-6">
-          {upcomingMatches.map((match) => (
-            <Card key={match.id} className="bg-gradient-card border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-match-card">
+          {fixtures.map((fixture) => (
+            <Card key={fixture.fixture.id} className="bg-gradient-card border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-match-card">
               <div className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   {/* Match Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="secondary" className="text-xs">
-                        {match.league}
+                        {fixture.league.name}
                       </Badge>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <CalendarDays className="h-4 w-4" />
-                        <span className="text-sm">{match.date} at {match.time}</span>
+                        <span className="text-sm">
+                          {new Date(fixture.fixture.date).toLocaleDateString()} at{' '}
+                          {new Date(fixture.fixture.date).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
                       </div>
                     </div>
 
                     <div className="text-center lg:text-left">
-                      <div className="text-xl font-bold mb-1">
-                        {match.homeTeam} <span className="text-muted-foreground">vs</span> {match.awayTeam}
+                      <div className="text-xl font-bold mb-1 flex items-center justify-center lg:justify-start gap-4">
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={fixture.teams.home.logo} 
+                            alt={fixture.teams.home.name}
+                            className="w-6 h-6 object-contain"
+                          />
+                          <span>{fixture.teams.home.name}</span>
+                        </div>
+                        <span className="text-muted-foreground">vs</span>
+                        <div className="flex items-center gap-2">
+                          <span>{fixture.teams.away.name}</span>
+                          <img 
+                            src={fixture.teams.away.logo} 
+                            alt={fixture.teams.away.name}
+                            className="w-6 h-6 object-contain"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* AI Prediction */}
-                  <div className="bg-secondary/30 rounded-lg p-4 min-w-[200px]">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">AI Prediction</span>
-                    </div>
+                  {/* Status */}
+                  <div className="bg-secondary/30 rounded-lg p-4 min-w-[120px]">
                     <div className="text-center">
-                      <div className="font-bold text-primary mb-1">{match.prediction}</div>
-                      <div className="flex items-center justify-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-victory-gold" />
-                        <span className="text-sm text-victory-gold font-medium">{match.confidence}% confidence</span>
+                      <div className="font-bold text-primary mb-1">Upcoming</div>
+                      <div className="text-sm text-muted-foreground">
+                        Not Started
                       </div>
                     </div>
                   </div>
