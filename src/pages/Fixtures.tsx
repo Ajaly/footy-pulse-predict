@@ -158,15 +158,15 @@ const FixturesTimeline: React.FC<FixturesTimelineProps> = ({
     setLoading(true);
     setError(null);
 
-    const query = new URLSearchParams({
-      league: selectedLeague,
-      season: selectedSeason,
-      page: String(page),
-      pageSize: String(pageSize)
-    }).toString();
-
     try {
-      const { data, error: edgeError } = await supabase.functions.invoke(`${edgeFunctionName}?${query}`);
+      const { data, error: edgeError } = await supabase.functions.invoke(edgeFunctionName, {
+        body: {
+          league: selectedLeague,
+          season: selectedSeason,
+          page: page,
+          pageSize: pageSize
+        }
+      });
 
       if (edgeError) {
         throw new Error(`Edge function error: ${edgeError.message}`);
