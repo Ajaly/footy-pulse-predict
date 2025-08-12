@@ -51,13 +51,37 @@ const Fixtures = () => {
 
         if (error) throw error;
         
-        if (data?.response) {
-          // Filter upcoming fixtures only
-          const upcomingFixtures = data.response.filter((fixture: Fixture) => 
-            fixture.fixture.status.short === 'NS' // Not Started
-          ).slice(0, 10); // Get next 10 fixtures
+        if (data?.events) {
+          // Map TheSportsDB format to our format
+          const mappedFixtures = data.events.slice(0, 10).map((event: any) => ({
+            fixture: {
+              id: event.idEvent,
+              date: event.dateEvent + 'T' + (event.strTime || '15:00:00'),
+              status: {
+                short: 'NS'
+              }
+            },
+            teams: {
+              home: {
+                id: event.idHomeTeam,
+                name: event.strHomeTeam,
+                logo: event.strHomeTeamBadge || event.strTeamBadge
+              },
+              away: {
+                id: event.idAwayTeam,
+                name: event.strAwayTeam,
+                logo: event.strAwayTeamBadge || event.strSquare
+              }
+            },
+            league: {
+              id: event.idLeague,
+              name: event.strLeague,
+              country: event.strCountry || 'England',
+              logo: event.strLeagueBadge || ''
+            }
+          }));
           
-          setFixtures(upcomingFixtures);
+          setFixtures(mappedFixtures);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch fixtures');

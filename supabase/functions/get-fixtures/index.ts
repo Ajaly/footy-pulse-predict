@@ -11,28 +11,16 @@ serve(async (req) => {
   }
 
   try {
-    const API_KEY = Deno.env.get('FOOTBALL_API_KEY')
-
-    console.log('API_KEY:', API_KEY)
-    if (!API_KEY) {
-      throw new Error('FOOTBALL_API_KEY not found in secrets')
-    }
-
     const url = new URL(req.url)
-    const league = url.searchParams.get('league') || '39' // Default to Premier League
-    const next = url.searchParams.get('next') || '10' // Next 10 fixtures
-    const season = url.searchParams.get('season') || '2023'
-
+    const league = url.searchParams.get('league') || '4328' // Default to Premier League (Free API ID)
+    
+    // Use free football API - no key required
     const response = await fetch(
-      // `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}&next=${next}`,
-
-      //Free versions do not have access to the ne
-      `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}`,
+      `https://www.thesportsdb.com/api/v1/json/3/eventsnext.php?id=${league}`,
       {
         method: 'GET',
         headers: {
-          'X-RapidAPI-Key': API_KEY,
-          'X-RapidAPI-Host': 'v3.football.api-sports.io',
+          'Content-Type': 'application/json',
         },
       }
     )
