@@ -51,6 +51,9 @@ const Fixtures = () => {
 
         if (error) throw error;
         
+        console.log('Raw API data:', data);
+        console.log('Data keys:', Object.keys(data || {}));
+        
         if (data?.events) {
           // Map TheSportsDB format to our format
           const mappedFixtures = data.events.slice(0, 10).map((event: any) => ({

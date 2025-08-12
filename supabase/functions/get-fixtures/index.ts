@@ -30,6 +30,20 @@ serve(async (req) => {
     }
 
     const data = await response.json()
+    
+    console.log('API Response:', JSON.stringify(data, null, 2))
+    console.log('Data keys:', Object.keys(data || {}))
+    
+    // Log specific properties to understand the structure
+    if (data) {
+      console.log('Has events:', !!data.events)
+      console.log('Has response:', !!data.response)
+      console.log('Has results:', !!data.results)
+      if (data.events) {
+        console.log('Events length:', data.events.length)
+        console.log('First event keys:', data.events[0] ? Object.keys(data.events[0]) : 'No events')
+      }
+    }
 
     return new Response(
       JSON.stringify(data),
