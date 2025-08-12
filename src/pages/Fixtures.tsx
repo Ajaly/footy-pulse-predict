@@ -180,24 +180,85 @@ const FixturesTimeline: React.FC<FixturesTimelineProps> = ({
         throw new Error(`API errors: ${data.errors.join(', ')}`);
       }
 
-      const response: FixturesResponse = data;
+      // Handle TheSportsDB format vs Football API format
+      let fixtures: Fixture[] = [];
       
-      // Validate response structure
-      if (!response.response || !Array.isArray(response.response)) {
+      if (data.events && Array.isArray(data.events)) {
+        // TheSportsDB format - convert to our format
+        fixtures = data.events.map((event: any) => ({
+          fixture: {
+            id: parseInt(event.idEvent),
+            referee: event.strOfficial || '',
+            timezone: 'UTC',
+            date: event.dateEvent + 'T' + (event.strTime || '15:00:00'),
+            timestamp: Math.floor(new Date(event.dateEvent + 'T' + (event.strTime || '15:00:00')).getTime() / 1000),
+            periods: { first: null, second: null },
+            venue: {
+              id: parseInt(event.idVenue) || 0,
+              name: event.strVenue || '',
+              city: event.strCity || ''
+            },
+            status: {
+              long: event.strStatus || 'Not Started',
+              short: 'NS',
+              elapsed: null,
+              extra: null
+            }
+          },
+          league: {
+            id: parseInt(event.idLeague),
+            name: event.strLeague,
+            country: event.strCountry || 'England',
+            logo: event.strLeagueBadge || '',
+            flag: '',
+            season: parseInt(event.strSeason?.split('-')[0]) || 2024,
+            round: `Round ${event.intRound || '1'}`,
+            standings: false
+          },
+          teams: {
+            home: {
+              id: parseInt(event.idHomeTeam),
+              name: event.strHomeTeam,
+              logo: event.strHomeTeamBadge || '',
+              winner: null
+            },
+            away: {
+              id: parseInt(event.idAwayTeam),
+              name: event.strAwayTeam,
+              logo: event.strAwayTeamBadge || '',
+              winner: null
+            }
+          },
+          goals: {
+            home: event.intHomeScore,
+            away: event.intAwayScore
+          },
+          score: {
+            halftime: { home: null, away: null },
+            fulltime: { home: event.intHomeScore, away: event.intAwayScore },
+            extratime: { home: null, away: null },
+            penalty: { home: null, away: null }
+          }
+        }));
+      } else if (data.response && Array.isArray(data.response)) {
+        // Football API format
+        fixtures = data.response;
+      } else {
         throw new Error('Invalid response structure: missing or invalid fixtures array');
       }
 
       if (page === 1) {
         // First page - replace fixtures
-        setFixtures(response.response);
+        setFixtures(fixtures);
       } else {
         // Subsequent pages - append fixtures
-        setFixtures(prev => [...prev, ...response.response]);
+        setFixtures(prev => [...prev, ...fixtures]);
       }
 
-      setCurrentPage(response.paging?.current || page);
-      setTotalPages(response.paging?.total || 1);
-      setTotalResults(response.results || 0);
+      // Set pagination info (TheSportsDB doesn't provide pagination, so use defaults)
+      setCurrentPage(page);
+      setTotalPages(1);
+      setTotalResults(fixtures.length);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch fixtures';
