@@ -1,99 +1,80 @@
-import { useEffect, useState } from "react";
-import supabase from "@/integrations/utils/supabase.ts";
-
-type League = {
-  league: {
-    id: number;
-    name: string;
-    type: string;
-    logo: string;
-  };
-  country: {
-    name: string;
-    flag: string;
-  };
-  seasons: {
-    year: number;
-    start: string;
-    end: string;
-    current: boolean;
-  }[];
-};
+import { useState } from 'react';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useLeagues } from "@/hooks/useFootballApi";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import { Globe, Trophy } from "lucide-react";
+import Standings from "@/components/Standings";
 
 const Leagues = () => {
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+  const { leagues, loading, error } = useLeagues({ country: 'England' });
 
-  useEffect(() => {
-    const fetchLeagues = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase.functions.invoke("football-leagues", {
-          method: "GET",
-        });
-        if (error) throw error;
-        setLeagues(data?.response || []);
-      } catch (err) {
-        setError("Failed to load leagues");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLeagues();
-  }, []);
+  if (loading) {
+    return <LoadingSpinner size="lg" text="Loading leagues..." />;
+  }
 
-  if (loading) return <div className="p-8 text-center">Loading leagues...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (!leagues || leagues.length === 0) {
-    return <div className="p-8 text-center text-gray-500">Could not load leagues.</div>;
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-destructive mb-4">Error loading leagues: {error}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-primary">Leagues in England (2023)</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {leagues
-          .filter(
-            (l) =>
-              l &&
-              l.league &&
-              l.league.id &&
-              l.league.name &&
-              l.league.logo &&
-              l.country &&
-              l.country.name &&
-              l.country.flag &&
-              Array.isArray(l.seasons)
-          )
-          .map((l) => (
-            <div
-              key={l.league.id}
-              className="bg-white/80 dark:bg-gray-900/60 rounded-lg shadow flex items-center gap-4 p-4"
-            >
-              <img src={l.league.logo} alt={l.league.name} className="h-12 w-12 rounded bg-white p-1" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg font-semibold">{l.league.name}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">{l.league.type}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                  <img src={l.country.flag} alt={l.country.name} className="h-4 w-6 rounded" />
-                  <span>{l.country.name}</span>
-                  <span className="mx-2">|</span>
-                  <span>
-                    Season:{" "}
-                    {l.seasons.length > 0
-                      ? `${l.seasons[0].year} (${l.seasons[0].start} to ${l.seasons[0].end})`
-                      : "N/A"}
-                  </span>
-                </div>
-              </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Football Leagues</h1>
+            <p className="text-muted-foreground text-lg">Explore leagues and standings</p>
+          </div>
+
+          {selectedLeague ? (
+            <div>
+              <button 
+                onClick={() => setSelectedLeague(null)}
+                className="mb-6 text-primary hover:underline"
+              >
+                ← Back to Leagues
+              </button>
+              <Standings league={selectedLeague} season="2023" />
             </div>
-          ))}
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {leagues?.map((league) => (
+                <Card 
+                  key={league.league.id} 
+                  className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => setSelectedLeague(league.league.id.toString())}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <img 
+                      src={league.league.logo} 
+                      alt={league.league.name}
+                      className="w-12 h-12 object-contain"
+                    />
+                    <div>
+                      <h3 className="font-bold text-lg">{league.league.name}</h3>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Globe className="h-4 w-4" />
+                        <span>{league.country.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    {league.league.type}
+                  </Badge>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 

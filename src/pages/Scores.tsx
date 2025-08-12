@@ -1,7 +1,14 @@
+import LiveScores from "@/components/LiveScores";
+import Standings from "@/components/Standings";
+
 const Scores = () => (
-  <div className="flex flex-col items-center justify-center min-h-[60vh]">
-    <h1 className="text-3xl font-bold mb-2 text-primary">Live Scores</h1>
-    <p className="text-muted-foreground">See all live football scores here.</p>
+  <div className="min-h-screen bg-background">
+    <LiveScores />
+    <div className="py-16 px-4">
+      <div className="max-w-6xl mx-auto">
+        <Standings />
+      </div>
+    </div>
   </div>
 );
 

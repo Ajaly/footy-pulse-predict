@@ -11,19 +11,54 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const league = url.searchParams.get('league') || '4328' // Default to Premier League (Free API ID)
-    
-    // Use free football API - no key required
-    const response = await fetch(
-      `https://www.thesportsdb.com/api/v1/json/3/eventsnext.php?id=${league}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+    const API_KEY = Deno.env.get('FOOTBALL_API_KEY')
+    if (!API_KEY) {
+      // Return mock data when API key is not available
+      console.warn('FOOTBALL_API_KEY not found, returning mock data')
+      return new Response(
+        JSON.stringify({
+          response: [],
+          results: 0,
+          paging: { current: 1, total: 1 }
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         },
-      }
-    )
+      )
+    }
+
+    // Handle both URL params and body params
+    const url = new URL(req.url)
+    let league, season, status;
+    
+    // Try to get parameters from request body first
+    try {
+      const body = await req.json()
+      league = body.league || url.searchParams.get('league') || '39'
+      season = body.season || url.searchParams.get('season') || '2023'
+      status = body.status || url.searchParams.get('status') || 'upcoming'
+    } catch {
+      // If body parsing fails, use URL params
+      league = url.searchParams.get('league') || '39'
+      season = url.searchParams.get('season') || '2023'
+      status = url.searchParams.get('status') || 'upcoming'
+    }
+    
+    // Free plan doesn't support live, next, or last parameters
+    // Use basic fixtures endpoint with date filtering
+    let endpoint = `https://v3.football.api-sports.io/fixtures?league=${league}&season=${season}`
+    
+    // For free plan, we can only get all fixtures for the season
+    // The frontend will need to filter by date/status
+    
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': API_KEY,
+        'X-RapidAPI-Host': 'v3.football.api-sports.io',
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`API call failed: ${response.status}`)
@@ -32,18 +67,6 @@ serve(async (req) => {
     const data = await response.json()
     
     console.log('API Response:', JSON.stringify(data, null, 2))
-    console.log('Data keys:', Object.keys(data || {}))
-    
-    // Log specific properties to understand the structure
-    if (data) {
-      console.log('Has events:', !!data.events)
-      console.log('Has response:', !!data.response)
-      console.log('Has results:', !!data.results)
-      if (data.events) {
-        console.log('Events length:', data.events.length)
-        console.log('First event keys:', data.events[0] ? Object.keys(data.events[0]) : 'No events')
-      }
-    }
 
     return new Response(
       JSON.stringify(data),
@@ -53,8 +76,16 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('Edge function error:', error)
+    
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
+      JSON.stringify({ 
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+        function: 'get-fixtures'
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
