@@ -1,6 +1,6 @@
 import { Calendar, MapPin, Clock, Trophy, User, ChevronLeft, ChevronRight, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from "react";
-import supabase from "@/integrations/utils/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // League options
 const LEAGUES = [
